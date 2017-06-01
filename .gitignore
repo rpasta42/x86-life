@@ -1,0 +1,4 @@
+book_examples
+*.o
+*.swp
+test.ex
