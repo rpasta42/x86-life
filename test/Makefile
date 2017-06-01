@@ -1,5 +1,5 @@
 
-fname=test3
+fname=test
 
 default: clean test
 

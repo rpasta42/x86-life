@@ -1,19 +1,31 @@
 
-segment .data
-;initializing data
+   SECTION .data ;initializing data
 
-segment .bss
+msg:   db 'Hello, world',0xa
+len:   equ $ - msg
+
+
+   SECTION .bss
+
 ;uninitialized data
 
-segment .text
-   global my_main
+   SECTION .text
 
-asm_main:
-   enter 0,0
-   pusha
+global _start
+
+_start:
+   mov eax, 4 ;write systemcall
+   mov ebx, 1 ;write to stdout
+   mov ecx, msg
+   mov edx, len ;length
+
+   int 0x80
+
+   mov eax, 1 ;exit syscall
+   mov ebx, 0 ;return status 0
+   int 0x80
+
+   ;leave
+   ;ret
 
 
-   popa
-   mov eax, 0
-   leave
-   ret
