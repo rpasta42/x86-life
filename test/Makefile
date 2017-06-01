@@ -1,4 +1,5 @@
 
+#make fname=helloworld
 fname=test
 
 default: clean test

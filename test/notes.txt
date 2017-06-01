@@ -1,0 +1,28 @@
+
+
+sytem calls
+   - steps
+      - move system call number into eax
+      - mov argument into ebx/ecx
+      - call interrupt 0x80
+   - exit call
+      - mov eax, 1 ;syscall EXIT
+      - mov ebx, 0 ;return status
+      - int 0x80
+   - print call
+      - mov eax, 4 ;syscall write
+      - mov ebx, 1 ;output to STDOUT
+      - mov ecx, msg ;message
+      - mov edx, msgLen ;message length
+   - read call
+      - returns length in eax, when eax is 0 then
+        it's over
+      - steps
+         - mov eax, 3 ;syscall READ
+         - mov ebx, 0 ;STDIN
+         - mov ecx, buffer_to_read
+         - mov edx, 1 ;length
+         - int 0x80
+
+
+
