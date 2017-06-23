@@ -24,5 +24,21 @@ sytem calls
          - mov edx, 1 ;length
          - int 0x80
 
+   - open call
+      - return data is passed in eax
+         - negative value if error
+         - positive value if file descriptor
 
+      - code:
+         ```
+         section .data
+         filetoopen db 'live.txt', 0
+
+         section .text
+         _start:
+         mov eax, 5
+         mov ebx, filetoopen
+         mov ecx, 2 ;read and write
+         int 0x80
+         ```
 
