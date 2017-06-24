@@ -12,7 +12,7 @@ sytem calls
    - print call
       - mov eax, 4 ;syscall write
       - mov ebx, 1 ;output to STDOUT
-      - mov ecx, msg ;message
+      - mov ecx, msg ;message address
       - mov edx, msgLen ;message length
    - read call
       - returns length in eax, when eax is 0 then
