@@ -62,7 +62,7 @@ loop:
 
    mov ebx, [buf]
    add ebx, eax
-   mov [buf], ebx
+   mov [buf], ebx ;store back
 
    jmp loop
 
