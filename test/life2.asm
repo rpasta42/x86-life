@@ -37,7 +37,7 @@ SECTION .data
 
 SECTION .bss
    life_buffer resb 1000
-   life_buffer_2 resb 1000
+   life_buffer2 resb 1000
    misc_buffer resb 100
 
 
@@ -58,6 +58,7 @@ _start:
    push ecx ;life_buffer end address
 
    call fread_succ_msg ;TODO: we don't actually check this and fail never called
+   call cp_1_to_2
 
    pop edx ;life_buffer end address
    push edx
@@ -269,7 +270,7 @@ step_gol_rec:
 
    ;add edx, life_buffer
    ;mov [edx], 0x60
-   add edx, life_buffer
+   add edx, life_buffer2
 
    mov byte [edx], 0x41
 
@@ -321,7 +322,7 @@ step_gol:
    pushad
 
    mov edx, ecx
-   call print_life_buffer
+   call print_life_buffer2
 
 ;   mov edx, ecx
 ;   sub edx, life_buffer
@@ -338,8 +339,14 @@ step_gol:
 
    popad
 
-   call exit_with_msg
-   ;jmp step_gol_ret
+   call swap_buffers
+
+   push ecx
+   push ebx
+   push eax
+
+   ;call exit_with_msg
+   jmp step_gol
 
 
 
@@ -540,6 +547,81 @@ print_life_buffer: ;edx needs to have buffer end
    popad
 
    ret
+
+
+print_life_buffer2: ;edx needs to have buffer end
+   pushad
+
+   ;we're going to print life_buffer
+   ;sub edx, life_buffer
+
+   call print_nl
+   call start_buff_msg
+
+   popad
+   pushad
+   sub edx, life_buffer
+   ;mov edx, 15
+
+   mov eax, 4
+   mov ebx, 1
+   mov ecx, life_buffer2
+   int 0x80
+
+   ;call print_nl
+   call end_buff_msg
+   call print_nl
+
+   popad
+
+   ret
+
+
+cp_1_to_2:
+   pushad
+
+   mov eax, life_buffer
+   mov ebx, life_buffer2
+   mov ecx, 1000
+
+   start_cp_loop:
+;   push eax
+;   push ebx
+;
+;   mov eax, [eax]
+;   mov [ebx], eax
+;
+;   pop ebx
+;   pop eax
+
+   mov edx, [eax]
+   mov [ebx], edx
+
+   inc eax
+   inc ebx
+
+   loop start_cp_loop
+
+   popad
+
+   ret
+
+swap_buffers:
+   pushad
+
+   mov eax, life_buffer
+   mov ebx, life_buffer2
+   mov ecx, 1000
+
+   start_swap_loop:
+   mov edx, [eax]
+   xchg edx, [ebx]
+
+   loop start_swap_loop
+
+   popad
+   ret
+
 
 ;return file descriptor on stack
 open_file:
