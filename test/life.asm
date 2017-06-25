@@ -92,9 +92,10 @@ _start:
 ;   ;end debug
 
 
-   call start_buff_msg
 
    ;prints the current file
+   call start_buff_msg
+
    sub edx, life_buffer
 
    mov eax, 4
@@ -103,9 +104,6 @@ _start:
    int 0x80
 
    call end_buff_msg
-
-
-   call print_nl
 
 
    jmp setup_gol
@@ -122,6 +120,7 @@ setup_gol:
       ;mov eax, 0
 
       mov ebx, life_buffer
+      ;sub ebx, 4
 
       pop ecx ;pointer to end of life_buffer; pushed in start
       push ecx ;ecx stores end address
@@ -129,20 +128,21 @@ setup_gol:
       jmp gol_grid_width_rec
       gol_grid_width_rec_ret: ;eax has grid width
 
-      call exit_with_msg
+      ;call exit_with_msg
+      inc eax
 
       push eax ;store grid width on stack
 
 
       ;debug start
-         call exit_with_msg
+      %if 0
+         ;call exit_with_msg
 
          call print_nl
          pop eax
          push eax
 
          call int_to_char
-
 
          mov [misc_buffer], eax
          mov eax, 4
@@ -151,7 +151,9 @@ setup_gol:
          mov edx, 1
          int 0x80
          call print_nl
-         call exit_with_msg
+         ;call exit_with_msg
+         pop eax
+      %endif
       ;debug end
 
    ;END getting grid width
@@ -255,6 +257,7 @@ step_gol_get_index:
 
 step_gol:
 
+   call start_buff_msg
    ;current stack (from top): eof life_buffer address, grid width, grid height
 
    pop eax ;eax - grid height
@@ -266,6 +269,8 @@ step_gol:
    push ecx
    push ebx
    push eax
+
+
 
    ;START debug
       call int_to_char
@@ -387,24 +392,30 @@ gol_grid_height_rec:
 gol_grid_width_rec:
 
    push ebx
-   mov BYTE bl, [ebx]
+   ;mov ecx, ebx
+   ;xor ebx, ebx
+   ;mov bl, [ecx]
+   ;mov ebx, [ebx]
+   mov ebx, [ebx]
+   shr ebx, 16
 
-   cmp bl, 0xa ;'\n' ;'u' ;0xa ;newline
+   ;mov ebx, [ecx]
+
+   cmp bl, 0xa ;0xa ;'\n' ;'u' ;0xa ;newline
    je gol_grid_width_rec_ret
    inc eax
 
-
    ;debug
+      %if 0
       push eax
+      push ebx
+      ;xor eax, eax
+      ;mov [misc_buffer], eax
+      ;mov byte [misc_buffer], bl ;ebx
 
-      xor eax, eax
+      call int_to_char
       mov [misc_buffer], eax
 
-      mov al, bl ;print file content
-
-      ;call int_to_char
-
-      mov byte [misc_buffer], al
       mov eax, 4
       mov ebx, 1
       mov ecx, misc_buffer
@@ -412,12 +423,28 @@ gol_grid_width_rec:
       int 0x80
 
       call print_nl
+      call print_nl
+
+      pop ebx
+      pop eax
+      push eax
+
+      mov byte [misc_buffer], bl
+      mov eax, 4
+      mov ebx, 1
+      mov ecx, misc_buffer
+      mov edx, 1
+      int 0x80
 
       pop eax
+      %endif
    ;end debug
 
    pop ebx
    inc ebx
+
+   ;cmp eax, 14
+   ;je gol_grid_width_rec_ret
 
    ;cmp ebx, ecx ;if no newline and end of file
    ;jge grid_size_fail_msg
@@ -482,9 +509,9 @@ int 0x80
 
 
 int_to_char:
-   add al, 48
-   movzx eax, al
-   ;add eax, 48
+   ;add al, 48
+   ;movzx eax, al
+   add eax, 48
    ret
 
 char_to_int:
