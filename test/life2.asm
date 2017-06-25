@@ -36,9 +36,9 @@ SECTION .data
    file_to_open db 'life.txt', 0
 
 SECTION .bss
-   life_buffer resb 1
-   life_buffer_2 resb 1
-   misc_buffer resb 1
+   life_buffer resb 1000
+   life_buffer_2 resb 1000
+   misc_buffer resb 100
 
 
 SECTION .text
@@ -140,29 +140,35 @@ step_gol_rec:
       ;edx - current index
 
 
-   inc bl
-   cmp al, bl
-   jne skip_reset_width
-
-   mov bl, 0
+   cmp bl, al
+   jl skip_reset_width
+   mov bl, 1
    inc bh
    jmp step_gol_rec
 
    skip_reset_width:
-   dec bl
 
-
-   cmp ah, bh
-   je step_gol_rec_ret
+   ;cmp ah, bh
+   ;je step_gol_rec_ret
 
    ;next comes the check that we're on last square
    jmp step_gol_get_index
    step_gol_get_index_ret:
 
 
-   %if 1 ;DEBUG
+   push eax ;so debug code doesn't mess with misc_buffer
+   xor eax, eax
+   mov [misc_buffer], eax
+   pop eax
+
+   %if 0 ;DEBUG
+   pushfd
    pushad
+   call print_nl
+
       ;print grid width
+         popad
+         pushad
          shl eax, 24
          shr eax, 24
          call int_to_char
@@ -246,23 +252,42 @@ step_gol_rec:
          mov edx, 1
          int 0x80
          call print_nl
-   call print_nl
+
+   ;push eax
+   xor eax, eax
+   mov [misc_buffer], eax
+   ;pop eax
+
    popad
+   popfd
    %endif ;END DEBUG
 
 
    ;cmp edx, ecx ;compare current index with file length
    cmp dl, cl
    jge step_gol_rec_ret
-   push edx
 
    ;add edx, life_buffer
    ;mov [edx], 0x60
    add edx, life_buffer
+
    mov byte [edx], 0x41
 
-   pop edx
+   %if 0 ;DEBUG
+      pushfd
+      pushad
 
+      mov ecx, edx
+      mov eax, 4
+      mov ebx, 1
+      mov edx, 1
+      int 0x80
+      call print_nl
+      call print_nl
+
+      popad
+      popfd
+   %endif
 
    inc bl
    jmp step_gol_rec
@@ -275,7 +300,6 @@ step_gol:
    pop ecx ;ecx - life_buffer end addr
    pushad
 
-
    shl eax, 24
    shr eax, 16 ;grid height in ah
 
@@ -284,6 +308,7 @@ step_gol:
    or eax, ebx ;grid width in al
 
    xor ebx, ebx ;resest for x coord and y coord
+   mov bl, 1
    xor edx, edx
 
    sub ecx, life_buffer
@@ -296,17 +321,22 @@ step_gol:
    pushad
 
    mov edx, ecx
-   sub edx, life_buffer
+   call print_life_buffer
 
-   mov eax, 4
-   mov ebx, 1
-   mov ecx, life_buffer
-   int 0x80
+;   mov edx, ecx
+;   sub edx, life_buffer
+;
+;   mov eax, 4
+;   mov ebx, 1
+;   mov ecx, life_buffer
+;   int 0x80
 
    call print_nl
 
    call sleep
    ;jmp step_gol
+
+   popad
 
    call exit_with_msg
    ;jmp step_gol_ret
@@ -351,7 +381,7 @@ gol_get_width:
    je gol_get_width_ret
 
    ;debug
-      %if 0
+   %if 0
       push eax
       push ebx
       ;xor eax, eax
@@ -382,7 +412,7 @@ gol_get_width:
       int 0x80
 
       pop eax
-      %endif
+   %endif
    ;end debug
 
    pop ebx
@@ -403,7 +433,7 @@ gol_setup:
       gol_get_width_ret:
       pop ebx
       sub ebx, life_buffer ;ebx now has line width
-      dec ebx
+      ;dec ebx
 
       push ebx ;current stack: life_buffe end address; grid width
 
@@ -496,11 +526,14 @@ print_life_buffer: ;edx needs to have buffer end
    popad
    pushad
    sub edx, life_buffer
+   ;mov edx, 15
 
    mov eax, 4
    mov ebx, 1
    mov ecx, life_buffer
    int 0x80
+
+   ;call print_nl
    call end_buff_msg
    call print_nl
 
