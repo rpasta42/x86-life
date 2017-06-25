@@ -126,11 +126,184 @@ step_gol_get_index:
    pop ebx ;reset eax and ebx
    pop eax
 
-   jmp step_gol_get_index_ret
+   ;jmp step_gol_get_index_ret
+   ret
+
+inc_misc:
+   push eax
+   mov eax, [misc_buffer]
+   inc eax
+   mov [misc_buffer], eax
+   pop eax
+   ret
+
+
+get_neighbor_count:
+   ;0x60 empty (`)
+   ;0x78 alive (x)
+
+   ;args
+      ;al - grid width (width + 1 for newline)
+      ;ah - grid height (real height)
+      ;bl - x coord
+      ;bh - y coord
+      ;ecx - file length
+      ;edx - current index
+
+   pushad
+
+   mov BYTE [misc_buffer], 0
+
+   check_top_left:
+      cmp bh, 0
+      je check_top_right
+
+      cmp bl, 0
+      je check_top_right
+
+      dec bh
+      dec bl
+
+      call step_gol_get_index
+      add edx, life_buffer
+      cmp BYTE [edx], 0x78
+      jne check_top_right
+
+      call inc_misc
+
+   check_top_right:
+      popad
+      pushad
+
+      cmp bh, 0
+      je check_bottom_left
+
+      cmp bl, al
+      je check_bottom_left
+
+      dec bh
+      inc bl
+
+      call step_gol_get_index
+      add edx, life_buffer
+      cmp BYTE [edx], 0x78
+      jne check_bottom_left
+
+      call inc_misc
+
+   check_bottom_left:
+      popad
+      pushad
+
+      cmp bl, 0
+      je check_bottom_right
+
+      cmp bh, ah
+      je check_bottom_right
+
+      inc bh
+      dec bl
+
+      call step_gol_get_index
+      add edx, life_buffer
+      cmp BYTE [edx], 0x78
+      jne check_bottom_right
+
+      call inc_misc
+
+   check_bottom_right:
+      popad
+      pushad
+
+      cmp bh, ah
+      je check_top
+
+      cmp bl, al
+      je check_top
+
+      inc bh
+      inc bl
+
+      call step_gol_get_index
+      add edx, life_buffer
+      cmp BYTE [edx], 0x78
+      jne check_top
+
+      call inc_misc
+
+   check_top:
+      popad
+      pushad
+
+      cmp bh, 0
+      je check_bottom
+
+      dec bh
+      call step_gol_get_index
+      add edx, life_buffer
+      cmp BYTE [edx], 0x78
+      jne check_bottom
+
+      call inc_misc
+
+   check_bottom:
+      popad
+      pushad
+
+      cmp bh, ah
+      je check_left
+
+      inc bh
+      call step_gol_get_index
+      add edx, life_buffer
+      cmp BYTE [edx], 0x78
+      jne check_left
+
+      call inc_misc
+
+   check_left:
+      popad
+      pushad
+
+      cmp bl, 0
+      je check_right
+
+      dec bl
+      call step_gol_get_index
+      add edx, life_buffer
+      cmp BYTE [edx], 0x78
+      jne check_right
+
+      call inc_misc
+
+   check_right:
+      popad
+      pushad
+
+      cmp bl, al
+      je get_neighbor_pre_ret
+
+      inc bl
+      call step_gol_get_index
+      add edx, life_buffer
+      cmp BYTE [edx], 0x78
+      jne get_neighbor_pre_ret
+
+      call inc_misc
+
+
+   ;mov BYTE [misc_buffer], 3
+
+   get_neighbor_pre_ret:
+
+
+   popad
+   jmp get_neighbor_count_ret
+
 
 step_gol_rec:
    ;0x60 empty (`)
-   ;0x79 alive (x)
+   ;0x78 alive (x)
 
    ;args
       ;al - grid width
@@ -140,7 +313,7 @@ step_gol_rec:
       ;ecx - file length
       ;edx - current index
 
-
+   ;reset width and increment line number
    cmp bl, al
    jl skip_reset_width
    mov bl, 1
@@ -149,12 +322,13 @@ step_gol_rec:
 
    skip_reset_width:
 
-   ;cmp ah, bh
-   ;je step_gol_rec_ret
 
    ;next comes the check that we're on last square
-   jmp step_gol_get_index
-   step_gol_get_index_ret:
+
+   ;get index into array (width*currY + currX)
+   call step_gol_get_index
+   ;jmp step_gol_get_index
+   ;step_gol_get_index_ret:
 
 
    push eax ;so debug code doesn't mess with misc_buffer
@@ -268,11 +442,59 @@ step_gol_rec:
    cmp dl, cl
    jge step_gol_rec_ret
 
-   ;add edx, life_buffer
-   ;mov [edx], 0x60
-   add edx, life_buffer2
 
-   mov byte [edx], 0x41
+   ;-------LOGIC
+   add edx, life_buffer ;returned from step_gol_get_index
+   ;mov byte [edx], 0x41
+
+   jmp get_neighbor_count ;returns neighbor count in misc_buffer
+   get_neighbor_count_ret:
+
+   cmp BYTE [edx], 0x78 ;0x78 = x
+   jne is_dead_cell
+
+   is_live_cell:
+      pushad
+      mov eax, [misc_buffer]
+
+      cmp eax, 2
+      jl should_die
+
+      cmp eax, 3
+      jg should_die
+
+      jmp should_live
+
+   is_dead_cell:
+      pushad
+      mov eax, [misc_buffer]
+
+      cmp eax, 3
+      je should_live
+
+      jmp should_die
+
+   ;;;;;
+   should_live:
+      popad
+
+      sub edx, life_buffer
+      add edx, life_buffer2
+
+      mov byte [edx], 0x78
+      jmp skip_should_die
+
+   should_die:
+      popad
+
+      sub edx, life_buffer
+      add edx, life_buffer2
+
+      mov byte [edx], 0x60
+
+   skip_should_die:
+
+   ;-------END LOGIC
 
    %if 0 ;DEBUG
       pushfd
@@ -480,7 +702,7 @@ gol_setup:
    ;END getting grid height
 
    ;current stack: life_buffer end addr; grid width; grid height
-   %if 0 ;START DEBUG (print height; width)
+   %if 1 ;START DEBUG (print height; width)
       pop eax ;height
       pop ebx ;width
       push ebx
@@ -657,11 +879,6 @@ read_file_rec:
    jmp read_file_rec
 
 
-
-
-
-
-
 ;START misc functions
 
 exit_err:
@@ -688,6 +905,11 @@ char_to_int:
 sleep: ;this is taken from https://stackoverflow.com/questions/19580282/nasm-assembly-linux-timer-or-sleep
    mov dword [tv_sec], 1 ;1 sec
    mov dword [tv_usec], 0
+
+   ;mov dword [tv_sec], 0 ;1 sec
+   ;mov dword [tv_usec], 100000000
+
+
    mov eax, 162
    mov ebx, timeval
    mov ecx, 0
