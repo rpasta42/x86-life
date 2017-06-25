@@ -69,10 +69,247 @@ _start:
    jmp gol_setup
    gol_setup_ret:
 
+   ;current stack: life_buffer end addr; grid width; grid height
+   jmp step_gol
+
    call exit_with_msg
    ;jmp gol_step
 
 
+step_gol_get_index:
+   ;returns gridWidth * currY + currX in edx
+   ;we need to compare current index into matrix with end of life_buffer
+   ;if they're equal, we return
+
+   ;args
+      ;al - grid width
+      ;ah - grid height
+      ;bl - x coord
+      ;bh - y coord
+
+   push eax
+   push ebx
+
+   xor edx, edx
+   mov dl, al ;edx = gridWidth (al)
+
+   ;shr ebx, 8 ;ebx = ebx >> 8 (ebx = current y coord)
+   shl ebx, 16
+   shr ebx, 24
+
+   ;imul bx, dx ;edx *= currY ;gas or nas?
+   imul dx, bx ;edx *= currY ;gas or nas? ;original
+
+   ;imul dl, bh ;edx *= currY (al) (bad)
+
+
+   ;mov al, bl
+   ;mov al, bh
+   ;mul dl ;edx *= currY
+
+
+   pop ebx ;reset eax and ebx
+   pop eax
+   push eax ;push them back on stack
+   push ebx
+
+   ;pop ebx
+   ;pop eax
+   ;ret
+
+   ;shl ebx, 24 ;ebx = ebx << 24
+   ;shr ebx, 24 ;ebx = ebx >> 24 (ebx = current x coord)
+   ;add edx, ebx ;edx += currX
+   add dl, bl
+
+   pop ebx ;reset eax and ebx
+   pop eax
+
+   jmp step_gol_get_index_ret
+
+step_gol_rec:
+   ;0x60 empty (`)
+   ;0x79 alive (x)
+
+   ;args
+      ;al - grid width
+      ;ah - grid height
+      ;bl - x coord
+      ;bh - y coord
+      ;ecx - file length
+      ;edx - current index
+
+
+   inc bl
+   cmp al, bl
+   jne skip_reset_width
+
+   mov bl, 0
+   inc bh
+   jmp step_gol_rec
+
+   skip_reset_width:
+   dec bl
+
+
+   cmp ah, bh
+   je step_gol_rec_ret
+
+   ;next comes the check that we're on last square
+   jmp step_gol_get_index
+   step_gol_get_index_ret:
+
+
+   %if 1 ;DEBUG
+   pushad
+      ;print grid width
+         shl eax, 24
+         shr eax, 24
+         call int_to_char
+         mov [misc_buffer], eax
+
+         mov eax, 4
+         mov ebx, 1
+         mov ecx, misc_buffer
+         mov edx, 1
+         int 0x80
+         call print_nl
+      ;print grid height
+         popad
+         pushad
+         shl eax, 16
+         shr eax, 24
+         call int_to_char
+         mov [misc_buffer], eax
+
+         mov eax, 4
+         mov ebx, 1
+         mov ecx, misc_buffer
+         mov edx, 1
+         int 0x80
+         call print_nl
+      ;print current x
+         popad
+         pushad
+         ;shl ebx, 24
+         ;shr ebx, 24
+         ;mov eax, ebx
+         mov al, bl
+         call int_to_char
+         mov [misc_buffer], eax
+
+         mov eax, 4
+         mov ebx, 1
+         mov ecx, misc_buffer
+         mov edx, 1
+         int 0x80
+         call print_nl
+      ;print current y
+         popad
+         pushad
+         ;shl ebx, 16
+         ;shr ebx, 24
+         ;mov eax, ebx
+         mov al, bh
+         call int_to_char
+         mov [misc_buffer], eax
+
+         mov eax, 4
+         mov ebx, 1
+         mov ecx, misc_buffer
+         mov edx, 1
+         int 0x80
+         call print_nl
+      ;print current index
+         popad
+         pushad
+         mov al, dl
+         call int_to_char
+         mov [misc_buffer], eax
+
+         mov eax, 4
+         mov ebx, 1
+         mov ecx, misc_buffer
+         mov edx, 1
+         int 0x80
+         call print_nl
+      ;print file len
+         popad
+         pushad
+         mov al, cl
+         call int_to_char
+         mov [misc_buffer], eax
+
+         mov eax, 4
+         mov ebx, 1
+         mov ecx, misc_buffer
+         mov edx, 1
+         int 0x80
+         call print_nl
+   call print_nl
+   popad
+   %endif ;END DEBUG
+
+
+   ;cmp edx, ecx ;compare current index with file length
+   cmp dl, cl
+   jge step_gol_rec_ret
+   push edx
+
+   ;add edx, life_buffer
+   ;mov [edx], 0x60
+   add edx, life_buffer
+   mov byte [edx], 0x41
+
+   pop edx
+
+
+   inc bl
+   jmp step_gol_rec
+
+
+step_gol:
+
+   pop eax ;eax - grid height
+   pop ebx ;ebx - grid width
+   pop ecx ;ecx - life_buffer end addr
+   pushad
+
+
+   shl eax, 24
+   shr eax, 16 ;grid height in ah
+
+   shl ebx, 24
+   shr ebx, 24
+   or eax, ebx ;grid width in al
+
+   xor ebx, ebx ;resest for x coord and y coord
+   xor edx, edx
+
+   sub ecx, life_buffer
+   jmp step_gol_rec
+   step_gol_rec_ret:
+
+   ;call exit_with_msg
+
+   popad ;registers same as beginning of step_gol label
+   pushad
+
+   mov edx, ecx
+   sub edx, life_buffer
+
+   mov eax, 4
+   mov ebx, 1
+   mov ecx, life_buffer
+   int 0x80
+
+   call print_nl
+
+   call sleep
+   ;jmp step_gol
+
+   call exit_with_msg
+   ;jmp step_gol_ret
 
 
 
@@ -103,7 +340,6 @@ gol_get_height:
    %endif ;END DEBUG
 
    jmp gol_get_height
-
 
 gol_get_width:
 
@@ -207,43 +443,44 @@ gol_setup:
    ;END getting grid height
 
    ;current stack: life_buffer end addr; grid width; grid height
-   pop eax ;height
-   pop ebx ;width
-   push ebx
-   push eax
+   %if 0 ;START DEBUG (print height; width)
+      pop eax ;height
+      pop ebx ;width
+      push ebx
+      push eax
 
-   ;print width and height
-   call print_nl
+      ;print width and height
+      call print_nl
 
-   call int_to_char
-   mov [misc_buffer], eax
-   mov eax, 4
-   mov ebx, 1
-   mov ecx, misc_buffer
-   mov edx, 1
-   int 0x80
+      call int_to_char
+      mov [misc_buffer], eax
+      mov eax, 4
+      mov ebx, 1
+      mov ecx, misc_buffer
+      mov edx, 1
+      int 0x80
 
-   call print_nl
+      call print_nl
 
-   pop ebx ;height
-   pop eax ;width
-   push eax
-   push ebx
+      pop ebx ;height
+      pop eax ;width
+      push eax
+      push ebx
 
-   call int_to_char
-   mov [misc_buffer], eax
-   mov eax, 4
-   mov ebx, 1
-   mov ecx, misc_buffer
-   mov edx, 1
-   int 0x80
+      call int_to_char
+      mov [misc_buffer], eax
+      mov eax, 4
+      mov ebx, 1
+      mov ecx, misc_buffer
+      mov edx, 1
+      int 0x80
 
-   call print_nl
-   call print_nl
+      call print_nl
+      call print_nl
+   %endif ;END DEBUG
 
-
+   ;ret stack: life_buffer end addr; grid width; grid height
    jmp gol_setup_ret
-
 
 
 
@@ -251,11 +488,15 @@ print_life_buffer: ;edx needs to have buffer end
    pushad
 
    ;we're going to print life_buffer
-   sub edx, life_buffer
+   ;sub edx, life_buffer
 
    call print_nl
    call start_buff_msg
-   sub ecx, life_buffer
+
+   popad
+   pushad
+   sub edx, life_buffer
+
    mov eax, 4
    mov ebx, 1
    mov ecx, life_buffer
@@ -266,7 +507,6 @@ print_life_buffer: ;edx needs to have buffer end
    popad
 
    ret
-
 
 ;return file descriptor on stack
 open_file:
