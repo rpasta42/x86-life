@@ -213,7 +213,7 @@ step_gol_rec:
 
    ;add edx, life_buffer
    ;mov [edx], 0x60
-   add edx, life_buffer
+   add edx, life_buffer ;life_buffer_2
    mov byte [edx], 0x41
 
    inc bl
