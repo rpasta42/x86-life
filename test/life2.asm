@@ -154,6 +154,8 @@ get_neighbor_count:
 
    mov BYTE [misc_buffer], 0
 
+   %if 1 ;0 to exclude diagonal neighbors
+
    check_top_left:
       cmp bh, 0
       je check_top_right
@@ -230,6 +232,8 @@ get_neighbor_count:
       jne check_top
 
       call inc_misc
+
+   %endif
 
    check_top:
       popad
@@ -327,9 +331,6 @@ step_gol_rec:
 
    ;get index into array (width*currY + currX)
    call step_gol_get_index
-   ;jmp step_gol_get_index
-   ;step_gol_get_index_ret:
-
 
    push eax ;so debug code doesn't mess with misc_buffer
    xor eax, eax
@@ -457,13 +458,29 @@ step_gol_rec:
       pushad
       mov eax, [misc_buffer]
 
-      cmp eax, 2
-      jl should_die
+      %if 1
+         cmp eax, 2
+         jl should_die
 
-      cmp eax, 3
-      jg should_die
+         cmp eax, 3
+         jg should_die
 
-      jmp should_live
+         jmp should_live
+      %endif
+
+      %if 0 ;alternative version, same logic
+         cmp eax, 0
+         je should_die
+         cmp eax, 1
+         je should_die
+         cmp eax, 4
+         jge should_die
+
+         cmp eax, 3
+         je should_live
+         cmp eax, 2
+         je should_live
+      %endif
 
    is_dead_cell:
       pushad
@@ -561,13 +578,14 @@ step_gol:
 
    popad
 
-   call swap_buffers
-
    push ecx
    push ebx
    push eax
 
    ;call exit_with_msg
+
+   call swap_buffers
+
    jmp step_gol
 
 
@@ -807,6 +825,7 @@ cp_1_to_2:
    mov ecx, 1000
 
    start_cp_loop:
+
 ;   push eax
 ;   push ebx
 ;
@@ -825,7 +844,6 @@ cp_1_to_2:
    loop start_cp_loop
 
    popad
-
    ret
 
 swap_buffers:
@@ -836,8 +854,16 @@ swap_buffers:
    mov ecx, 1000
 
    start_swap_loop:
-   mov edx, [eax]
-   xchg edx, [ebx]
+
+   ;mov BYTE [misc_buffer], al
+   ;mov BYTE al, bl
+   ;mov bl, [misc_buffer]
+
+   mov dl, [eax]
+   xchg BYTE dl, [ebx]
+
+   inc eax
+   inc ebx
 
    loop start_swap_loop
 
