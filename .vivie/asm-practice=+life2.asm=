@@ -109,126 +109,117 @@ setlocal wrapmargin=0
 silent! normal! zE
 3,29fold
 48,77fold
-80,130fold
-132,138fold
-159,174fold
-176,194fold
-196,214fold
-216,234fold
-157,236fold
-157,236fold
-238,251fold
-253,266fold
-268,281fold
-283,296fold
-141,305fold
-312,318fold
-320,327fold
-345,358fold
-359,372fold
-373,388fold
-389,404fold
-405,417fold
-418,430fold
-340,439fold
-471,483fold
-447,514fold
-516,530fold
-308,533fold
-536,589fold
-609,617fold
-609,617fold
-593,619fold
-630,663fold
-621,668fold
-687,701fold
-677,703fold
-705,720fold
-723,757fold
-671,760fold
-671,760fold
-764,789fold
-792,817fold
-829,836fold
-820,847fold
-820,847fold
-849,872fold
-876,887fold
-889,895fold
-897,906fold
-911,914fold
-916,919fold
-921,925fold
-927,930fold
-932,944fold
-946,956fold
-910,957fold
-909,958fold
-960,1018fold
-48
+80,112fold
+114,120fold
+141,156fold
+158,176fold
+178,196fold
+198,216fold
+139,218fold
+139,218fold
+220,233fold
+235,248fold
+250,263fold
+265,278fold
+123,284fold
+291,297fold
+299,306fold
+324,337fold
+338,351fold
+352,367fold
+368,383fold
+384,396fold
+397,409fold
+319,416fold
+448,460fold
+424,491fold
+493,507fold
+287,510fold
+513,558fold
+578,586fold
+578,586fold
+562,588fold
+598,628fold
+590,633fold
+650,664fold
+641,666fold
+668,683fold
+686,720fold
+635,723fold
+635,723fold
+727,748fold
+751,773fold
+776,794fold
+776,794fold
+796,815fold
+819,830fold
+832,838fold
+840,849fold
+854,857fold
+859,862fold
+864,868fold
+870,873fold
+875,887fold
+889,899fold
+853,900fold
+852,901fold
+903,961fold
+123
 normal! zo
-141
+139
 normal! zo
-157
+139
 normal! zo
-157
-normal! zo
-157
+139
 normal! zc
-141
+123
 normal! zc
-308
+287
 normal! zo
-340
+319
 normal! zo
-340
+319
 normal! zc
-447
+424
 normal! zo
-447
+424
 normal! zc
-308
+287
 normal! zc
-536
+562
 normal! zo
-593
+578
 normal! zo
-609
-normal! zo
-593
+562
 normal! zc
-621
+590
 normal! zo
-621
+590
 normal! zc
-671
+635
 normal! zo
-671
+635
 normal! zo
-677
+641
 normal! zo
-677
+641
 normal! zc
-671
+635
 normal! zc
-792
+776
 normal! zo
-820
+852
 normal! zo
-820
+853
 normal! zo
-820
+852
 normal! zc
-909
-normal! zo
-910
-normal! zo
-let s:l = 564 - ((498 * winheight(0) + 32) / 65)
+let s:l = 961 - ((121 * winheight(0) + 33) / 66)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-564
-normal! 0
+961
+normal! 01|
 let &so = s:so_save | let &siso = s:siso_save
 doautoall SessionLoadPost
 " vim: set ft=vim :
