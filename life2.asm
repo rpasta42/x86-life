@@ -94,42 +94,24 @@ step_gol_get_index:
    xor edx, edx
    mov dl, al ;edx = gridWidth (al)
 
-   ;shr ebx, 8 ;ebx = ebx >> 8 (ebx = current y coord)
-   shl ebx, 16
+   shl ebx, 16 ;ebx = (ebx << 16) >> 24 (ebx = current y coord)
    shr ebx, 24
 
-   ;imul bx, dx ;edx *= currY ;gas or nas?
-   imul dx, bx ;edx *= currY ;gas or nas? ;original
+   imul dx, bx ;edx *= currY
 
-   ;imul dl, bh ;edx *= currY (al) (bad)
-
-
-   ;mov al, bl
-   ;mov al, bh
-   ;mul dl ;edx *= currY
-
-
-   pop ebx ;reset eax and ebx
+   pop ebx
    pop eax
-   push eax ;push them back on stack
+   push eax
    push ebx
 
-   ;pop ebx
-   ;pop eax
-   ;ret
+   add dl, bl ;edx += currX
 
-   ;shl ebx, 24 ;ebx = ebx << 24
-   ;shr ebx, 24 ;ebx = ebx >> 24 (ebx = current x coord)
-   ;add edx, ebx ;edx += currX
-   add dl, bl
-
-   pop ebx ;reset eax and ebx
+   pop ebx
    pop eax
 
-   ;jmp step_gol_get_index_ret
    ret
 
-inc_misc:
+inc_misc: ;increment data in misc_buffer by 1
    push eax
    mov eax, [misc_buffer]
    inc eax
@@ -296,10 +278,7 @@ get_neighbor_count:
       call inc_misc
 
 
-   ;mov BYTE [misc_buffer], 3
-
    get_neighbor_pre_ret:
-
 
    popad
    jmp get_neighbor_count_ret
@@ -327,11 +306,11 @@ step_gol_rec:
    skip_reset_width:
 
 
-   ;next comes the check that we're on last square
-
    ;get index into array (width*currY + currX)
    call step_gol_get_index
 
+
+   ;TODO: we don't need this anymore
    push eax ;so debug code doesn't mess with misc_buffer
    xor eax, eax
    mov [misc_buffer], eax
@@ -429,18 +408,16 @@ step_gol_rec:
          int 0x80
          call print_nl
 
-   ;push eax
    xor eax, eax
    mov [misc_buffer], eax
-   ;pop eax
 
    popad
    popfd
    %endif ;END DEBUG
 
 
-   ;cmp edx, ecx ;compare current index with file length
-   cmp dl, cl
+   ;next check whether we're on last square
+   cmp dl, cl ;compare current index with file length
    jge step_gol_rec_ret
 
 
@@ -563,14 +540,6 @@ step_gol:
    mov edx, ecx
    call print_life_buffer2
 
-;   mov edx, ecx
-;   sub edx, life_buffer
-;
-;   mov eax, 4
-;   mov ebx, 1
-;   mov ecx, life_buffer
-;   int 0x80
-
    call print_nl
 
    call sleep
@@ -622,18 +591,14 @@ gol_get_width:
 
    push ebx
    mov BYTE bl, [ebx]
-   ;shr ebx, 16
 
-   cmp bl, 0xa ;0xa ;'\n' ;'u' ;0xa ;newline
+   cmp bl, 0xa ;newline
    je gol_get_width_ret
 
    ;debug
    %if 0
       push eax
       push ebx
-      ;xor eax, eax
-      ;mov [misc_buffer], eax
-      ;mov byte [misc_buffer], bl ;ebx
 
       call int_to_char
       mov [misc_buffer], eax
@@ -667,7 +632,6 @@ gol_get_width:
 
    jmp gol_get_width
 
-
 gol_setup:
    ;current stack: life_buffer end address
 
@@ -680,7 +644,6 @@ gol_setup:
       gol_get_width_ret:
       pop ebx
       sub ebx, life_buffer ;ebx now has line width
-      ;dec ebx
 
       push ebx ;current stack: life_buffe end address; grid width
 
@@ -765,22 +728,18 @@ print_life_buffer: ;edx needs to have buffer end
    pushad
 
    ;we're going to print life_buffer
-   ;sub edx, life_buffer
-
    call print_nl
    call start_buff_msg
 
    popad
    pushad
    sub edx, life_buffer
-   ;mov edx, 15
 
    mov eax, 4
    mov ebx, 1
    mov ecx, life_buffer
    int 0x80
 
-   ;call print_nl
    call end_buff_msg
    call print_nl
 
@@ -793,15 +752,12 @@ print_life_buffer2: ;edx needs to have buffer end
    pushad
 
    ;we're going to print life_buffer
-   ;sub edx, life_buffer
-
    call print_nl
    call start_buff_msg
 
    popad
    pushad
    sub edx, life_buffer
-   ;mov edx, 15
 
    mov eax, 4
    mov ebx, 1
@@ -826,15 +782,6 @@ cp_1_to_2:
 
    start_cp_loop:
 
-;   push eax
-;   push ebx
-;
-;   mov eax, [eax]
-;   mov [ebx], eax
-;
-;   pop ebx
-;   pop eax
-
    mov edx, [eax]
    mov [ebx], edx
 
@@ -854,10 +801,6 @@ swap_buffers:
    mov ecx, 1000
 
    start_swap_loop:
-
-   ;mov BYTE [misc_buffer], al
-   ;mov BYTE al, bl
-   ;mov bl, [misc_buffer]
 
    mov dl, [eax]
    xchg BYTE dl, [ebx]
@@ -929,7 +872,7 @@ char_to_int:
    movzx eax, al
    ret
 
-sleep: ;this is taken from https://stackoverflow.com/questions/19580282/nasm-assembly-linux-timer-or-sleep
+sleep: ;this function is take from https://stackoverflow.com/questions/19580282/nasm-assembly-linux-timer-or-sleep
    mov dword [tv_sec], 1 ;1 sec
    mov dword [tv_usec], 0
 
