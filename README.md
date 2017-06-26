@@ -15,9 +15,9 @@ You might also need to run this:
 `sudo apt install libc6:i386`
 
 
-### Setup on Ubuntu
+### Compiling and running
 
-first, choose which example you want to run (or make your own)
+First, choose which example you want to run (or make your own)
 
 `cp examples/life.txt.explosion life.txt`
 
