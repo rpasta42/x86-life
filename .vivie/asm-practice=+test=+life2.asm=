@@ -109,81 +109,125 @@ setlocal wrapmargin=0
 silent! normal! zE
 3,29fold
 48,77fold
-80,129fold
-170,183fold
-184,197fold
-198,213fold
-214,229fold
-230,242fold
-243,255fold
-165,264fold
-277,291fold
-131,294fold
-297,349fold
-369,377fold
-369,377fold
-353,379fold
-390,423fold
-381,428fold
-447,461fold
-437,463fold
-465,480fold
-483,517fold
-431,520fold
-431,520fold
-524,549fold
-552,577fold
-580,607fold
-580,607fold
-609,623fold
-627,638fold
-640,646fold
-648,657fold
-667,670fold
-672,675fold
-677,681fold
-683,686fold
-688,695fold
-697,707fold
-666,708fold
-711,769fold
-131
+80,130fold
+132,138fold
+159,174fold
+176,194fold
+196,214fold
+216,234fold
+157,236fold
+157,236fold
+238,251fold
+253,266fold
+268,281fold
+283,296fold
+141,305fold
+312,318fold
+320,327fold
+345,358fold
+359,372fold
+373,388fold
+389,404fold
+405,417fold
+418,430fold
+340,439fold
+471,483fold
+447,514fold
+516,530fold
+308,533fold
+536,589fold
+609,617fold
+609,617fold
+593,619fold
+630,663fold
+621,668fold
+687,701fold
+677,703fold
+705,720fold
+723,757fold
+671,760fold
+671,760fold
+764,789fold
+792,817fold
+829,836fold
+820,847fold
+820,847fold
+849,872fold
+876,887fold
+889,895fold
+897,906fold
+911,914fold
+916,919fold
+921,925fold
+927,930fold
+932,944fold
+946,956fold
+910,957fold
+909,958fold
+960,1018fold
+48
 normal! zo
-165
+141
 normal! zo
-165
+157
+normal! zo
+157
+normal! zo
+157
 normal! zc
-131
+141
 normal! zc
-353
+308
 normal! zo
-369
+340
 normal! zo
-353
+340
 normal! zc
-381
+447
 normal! zo
-381
+447
 normal! zc
-431
-normal! zo
-431
-normal! zo
-437
-normal! zo
-437
+308
 normal! zc
-431
+536
+normal! zo
+593
+normal! zo
+609
+normal! zo
+593
 normal! zc
-580
+621
 normal! zo
-666
+621
+normal! zc
+671
 normal! zo
-let s:l = 297 - ((267 * winheight(0) + 32) / 65)
+671
+normal! zo
+677
+normal! zo
+677
+normal! zc
+671
+normal! zc
+792
+normal! zo
+820
+normal! zo
+820
+normal! zo
+820
+normal! zc
+909
+normal! zo
+910
+normal! zo
+let s:l = 564 - ((498 * winheight(0) + 32) / 65)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-297
+564
 normal! 0
 let &so = s:so_save | let &siso = s:siso_save
 doautoall SessionLoadPost
