@@ -861,6 +861,7 @@ swap_buffers:
 
    mov dl, [eax]
    xchg BYTE dl, [ebx]
+   mov [eax], dl
 
    inc eax
    inc ebx
