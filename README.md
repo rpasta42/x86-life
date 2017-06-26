@@ -18,6 +18,7 @@ You might also need to run this:
 ### Setup on Ubuntu
 
 first, choose which example you want to run (or make your own)
+
 `cp examples/life.txt.explosion life.txt`
 
 and then simply run make:
