@@ -1,4 +1,6 @@
-book_examples
+misc/book_examples
 *.o
+*.ex
 *.swp
 test.ex
+life.txt
